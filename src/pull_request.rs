@@ -1,3 +1,6 @@
+extern crate json;
+
+
 #[derive(Debug)]
 struct CommitRef {
     repo: String,
@@ -6,11 +9,18 @@ struct CommitRef {
 }
 
 impl CommitRef {
-    pub fn new(json: String) -> CommitRef {
+    pub fn new(json_str: &str) -> CommitRef {
+        let mut github_push_event = json::parse(json_str).unwrap();
+
+        let commit_ref = github_push_event["ref"].take_string().unwrap();
+        let branch_parts: Vec<&str> = commit_ref
+            .split('/')
+            .collect();
+
         CommitRef {
-            repo: "test".to_string(),
-            sha: "test".to_string(),
-            branch: "test".to_string(),
+            repo: github_push_event["repository"]["name"].take_string().unwrap(),
+            sha: github_push_event["head_commit"]["id"].take_string().unwrap(),
+            branch: branch_parts.last().unwrap().to_string(),
         }
     }
 }
@@ -184,7 +194,7 @@ mod tests {
             "type": "User",
             "site_admin": false
           }
-        }"#.to_string();
+        }"#;
 
         let commit_ref = CommitRef::new(payload);
 
