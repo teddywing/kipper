@@ -9,7 +9,8 @@ fn main() {
                 rouille::Response::text("hello world")
             },
 
-            _ => rouille::Response::empty_404()
+            _ => rouille::Response::text("404 Not Found")
+                    .with_status_code(404)
         )
     });
 }
