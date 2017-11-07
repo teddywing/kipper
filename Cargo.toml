@@ -3,4 +3,5 @@ name = "kipper"
 version = "0.0.1"
 
 [dependencies]
+json = "0.11.10"
 rouille = "1.0.3"
