@@ -20,9 +20,18 @@
 // fn request_job(url)
 // fn result_from_job(payload)
 
+extern crate json;
 extern crate reqwest;
 
 use self::reqwest::header::{Authorization, Basic};
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum JobStatus {
+    Success,
+    Failure,
+    Pending,
+    Unknown,
+}
 
 pub fn auth_credentials() -> Basic {
     Basic {
@@ -44,6 +53,24 @@ pub fn get_jobs(repo_name: String) {//-> Vec<String> {
     println!("{}", res.status());
 }
 
+pub fn result_from_job(payload: String) -> JobStatus {
+    let mut job = json::parse(payload.as_ref()).unwrap();
+
+    if job["result"].is_null() {
+        return JobStatus::Pending
+    }
+
+    let status = job["result"].take_string().unwrap();
+
+    if status == "SUCCESS" {
+        JobStatus::Success
+    } else if status == "FAILURE" {
+        JobStatus::Failure
+    } else {
+        JobStatus::Unknown
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -52,5 +79,40 @@ mod tests {
     #[test]
     fn get_jobs_queries_jobs_from_jenkins_api() {
         get_jobs("changes".to_string());
+    }
+
+    #[test]
+    fn result_from_job_is_success() {
+        let payload = r#"{
+            "result": "SUCCESS"
+        }"#;
+
+        assert_eq!(
+            result_from_job(payload.to_owned()),
+            JobStatus::Success
+        );
+    }
+
+    #[test]
+    fn result_from_job_is_failure() {
+        let payload = r#"{
+            "result": "FAILURE"
+        }"#;
+
+        assert_eq!(
+            result_from_job(payload.to_owned()),
+            JobStatus::Failure
+        );
+    }
+
+    #[test]
+    fn result_from_job_is_pending() {
+        let payload = r#"{
+        }"#;
+
+        assert_eq!(
+            result_from_job(payload.to_owned()),
+            JobStatus::Pending
+        );
     }
 }
