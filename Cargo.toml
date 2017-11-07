@@ -3,3 +3,4 @@ name = "kipper"
 version = "0.0.1"
 
 [dependencies]
+rouille = "1.0.3"
