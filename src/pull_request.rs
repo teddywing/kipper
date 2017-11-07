@@ -2,10 +2,10 @@ extern crate json;
 
 
 #[derive(Debug)]
-struct CommitRef {
-    repo: String,
-    sha: String,
-    branch: String,
+pub struct CommitRef {
+    pub repo: String,
+    pub sha: String,
+    pub branch: String,
 }
 
 impl CommitRef {
