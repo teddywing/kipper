@@ -20,7 +20,37 @@
 // fn request_job(url)
 // fn result_from_job(payload)
 
+extern crate reqwest;
+
+use self::reqwest::header::{Authorization, Basic};
+
+pub fn auth_credentials() -> Basic {
+    Basic {
+        username: "username".to_string(),
+        password: Some("token".to_string()),
+    }
+}
+
+pub fn get_jobs(repo_name: String) {//-> Vec<String> {
+    let client = reqwest::Client::new();
+
+    let credentials = auth_credentials();
+
+    let mut res = client.get("http://jenkins.example.com/job/changes-branches/18/api/json")
+        .header(Authorization(credentials))
+        .send()
+        .unwrap();
+
+    println!("{}", res.status());
+}
+
+
 #[cfg(test)]
 mod tests {
-    // fn 
+    use super::*;
+
+    #[test]
+    fn get_jobs_queries_jobs_from_jenkins_api() {
+        get_jobs("changes".to_string());
+    }
 }
