@@ -211,7 +211,7 @@ mod tests {
             "#)
             .create();
 
-        let job = request_job("http://jenkins.example.com/job/changes-branches/17".to_string());
+        let job = request_job("http://jenkins.example.com/job/changes-branches/15".to_string());
 
         let expected = Job {
             display_name: "2388-delete-the-codes-391af".to_string(),
