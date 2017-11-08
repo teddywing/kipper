@@ -4,6 +4,8 @@ extern crate reqwest;
 use std::collections::HashMap;
 use std::fmt;
 
+use self::reqwest::header::{Accept, qitem};
+
 use pull_request::CommitRef;
 
 #[cfg(not(test))]
@@ -12,7 +14,7 @@ const API_URL: &'static str = "https://api.github.com";
 #[cfg(test)]
 const API_URL: &'static str = mockito::SERVER_URL;
 
-enum CommitStatus {
+pub enum CommitStatus {
     Error,
     Failure,
     Pending,
@@ -30,7 +32,8 @@ impl fmt::Display for CommitStatus {
     }
 }
 
-fn update_commit_status(
+pub fn update_commit_status(
+    repo_name: String,
     commit_ref: CommitRef,
     state: CommitStatus,
     target_url: String,
@@ -49,8 +52,22 @@ fn update_commit_status(
     }
 
     let response = client.post(
-        format!("{}/repos/{}/{}/statuses/{}", API_URL, commit_ref.repo, commit_ref.sha)
-    );
+            &format!(
+                "{}/repos/{}/{}/statuses/{}",
+                API_URL,
+                repo_name,
+                commit_ref.repo,
+                commit_ref.sha
+            )
+        )
+        .header(
+            Accept(
+                vec![qitem("application/vnd.github.v3+json".parse().unwrap())]
+            )
+        )
+        .json(&params)
+        .send()
+        .unwrap();
 }
 
 
@@ -73,6 +90,7 @@ mod tests {
         };
 
         update_commit_status(
+            "octocat".to_string(),
             commit_ref,
             CommitStatus::Success,
             "https://jenkins.example.com/job/octocat/3".to_string(),
