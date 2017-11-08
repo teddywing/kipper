@@ -25,6 +25,9 @@ extern crate reqwest;
 
 use self::reqwest::header::{Authorization, Basic};
 
+use af83;
+use pull_request::CommitRef;
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum JobStatus {
     Success,
@@ -33,7 +36,7 @@ pub enum JobStatus {
     Unknown,
 }
 
-struct Job {
+pub struct Job {
     display_name: String,
     result: JobStatus,
 }
@@ -83,8 +86,9 @@ pub fn get_jobs(repo_name: String) {//-> Vec<String> {
     println!("{}", res.status());
 }
 
-// Does the `commit_ref` correspond to the job in the `payload`?
-pub fn job_for_commit(payload: String, commit_ref: CommitRef) -> bool {
+// Does the `commit_ref` correspond to the job?
+pub fn job_for_commit(job: Job, commit_ref: CommitRef) -> bool {
+    job.display_name == af83::job_name(commit_ref)
 }
 
 pub fn result_from_job(status: Option<String>) -> JobStatus {
@@ -121,6 +125,38 @@ mod tests {
     #[test]
     fn get_jobs_queries_jobs_from_jenkins_api() {
         get_jobs("changes".to_string());
+    }
+
+    #[test]
+    fn job_for_commit_returns_true_when_commit_matches_job() {
+        let job = Job {
+            display_name: "1753-fix-everything-b4a28".to_string(),
+            result: JobStatus::Pending,
+        };
+
+        let commit_ref = CommitRef {
+            repo: "vivid-system".to_string(),
+            sha: "b4a286e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c".to_string(),
+            branch: "1753-fix-everything".to_string(),
+        };
+
+        assert_eq!(job_for_commit(job, commit_ref), true);
+    }
+
+    #[test]
+    fn job_for_commit_returns_false_when_commit_doesnt_match_job() {
+        let job = Job {
+            display_name: "5234-eliminate-widgetmacallit-5a28c".to_string(),
+            result: JobStatus::Success,
+        };
+
+        let commit_ref = CommitRef {
+            repo: "vivid-system".to_string(),
+            sha: "b4a286e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c".to_string(),
+            branch: "1753-fix-everything".to_string(),
+        };
+
+        assert_eq!(job_for_commit(job, commit_ref), false);
     }
 
     #[test]
