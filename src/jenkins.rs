@@ -175,6 +175,30 @@ mod tests {
     }
 
     #[test]
+    fn request_job_queries_a_job_from_the_jenkins_api() {
+        let mock = mock("GET", "/job/changes-branches/15/api/json")
+            .with_status(200)
+            .with_header("content-type", "application/json;charset=utf-8")
+            .with_body(r#"
+                {
+                  "displayName": "2388-delete-the-codes-391af",
+                  "result": "SUCCESS"
+                }
+            "#)
+            .create();
+
+        let job = request_job("http://jenkins.example.com/job/changes-branches/17".to_string());
+
+        let expected = Job {
+            display_name: "2388-delete-the-codes-391af".to_string(),
+            result: JobStatus::Success,
+        };
+
+        assert_eq!(job.display_name, expected.display_name);
+        assert_eq!(job.result, expected.result);
+    }
+
+    #[test]
     fn job_for_commit_returns_true_when_commit_matches_job() {
         let job = Job {
             display_name: "1753-fix-everything-b4a28".to_string(),
