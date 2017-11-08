@@ -101,6 +101,26 @@ pub fn get_jobs(repo_name: String) -> Vec<String> {
         .collect::<Vec<String>>()
 }
 
+pub fn request_job(url: String) -> Job {
+    let client = reqwest::Client::new();
+
+    let credentials = auth_credentials();
+
+    let mut response = client.get(&format!("{}/api/json", url))
+        .header(Authorization(credentials))
+        .send()
+        .unwrap();
+
+    let body = response.text().unwrap();
+
+    let mut job = json::parse(body.as_ref()).unwrap();
+
+    Job {
+        display_name: job["displayName"].take_string().unwrap(),
+        result: result_from_job(job["result"].take_string()),
+    }
+}
+
 // Does the `commit_ref` correspond to the job?
 pub fn job_for_commit(job: Job, commit_ref: CommitRef) -> bool {
     job.display_name == af83::job_name(commit_ref)
