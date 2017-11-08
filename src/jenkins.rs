@@ -61,7 +61,7 @@ impl Job {
     }
 }
 
-pub fn update_commit_status(commit_ref) {
+pub fn find_and_track_build_and_update_status(commit_ref) {
     let jobs = get_jobs();
 
     for job_url in jobs {
