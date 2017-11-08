@@ -21,12 +21,19 @@
 // fn result_from_job(payload)
 
 extern crate json;
+extern crate mockito;
 extern crate reqwest;
 
 use self::reqwest::header::{Authorization, Basic};
 
 use af83;
 use pull_request::CommitRef;
+
+#[cfg(not(test))]
+const API_URL: &'static str = "http://jenkins.example.com";
+
+#[cfg(test)]
+const API_URL: &'static str = mockito::SERVER_URL;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum JobStatus {
@@ -73,17 +80,25 @@ pub fn auth_credentials() -> Basic {
     }
 }
 
-pub fn get_jobs(repo_name: String) {//-> Vec<String> {
+pub fn get_jobs(repo_name: String) -> Vec<String> {
     let client = reqwest::Client::new();
 
     let credentials = auth_credentials();
 
-    let mut res = client.get("http://jenkins.example.com/job/changes-branches/18/api/json")
+    let mut response = client.get(&format!("{}/job/{}-branches/api/json", API_URL, repo_name))
         .header(Authorization(credentials))
         .send()
         .unwrap();
 
-    println!("{}", res.status());
+    let body = response.text().unwrap();
+
+    let jobs = json::parse(body.as_ref()).unwrap();
+
+    jobs["builds"].members()
+        .map(|job| {
+            job["url"].clone().take_string().unwrap()
+        })
+        .collect::<Vec<String>>()
 }
 
 // Does the `commit_ref` correspond to the job?
@@ -107,6 +122,8 @@ pub fn result_from_job(status: Option<String>) -> JobStatus {
 
 #[cfg(test)]
 mod tests {
+    use self::mockito::mock;
+
     use super::*;
 
     #[test]
