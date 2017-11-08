@@ -23,8 +23,10 @@
 extern crate json;
 extern crate mockito;
 extern crate reqwest;
+extern crate url;
 
 use self::reqwest::header::{Authorization, Basic};
+use self::url::Url;
 
 use af83;
 use pull_request::CommitRef;
@@ -102,11 +104,13 @@ pub fn get_jobs(repo_name: String) -> Vec<String> {
 }
 
 pub fn request_job(url: String) -> Job {
+    let url = Url::parse(url.as_ref()).unwrap();
+
     let client = reqwest::Client::new();
 
     let credentials = auth_credentials();
 
-    let mut response = client.get(&format!("{}/api/json", url))
+    let mut response = client.get(&format!("{}{}/api/json", API_URL, url.path()))
         .header(Authorization(credentials))
         .send()
         .unwrap();
