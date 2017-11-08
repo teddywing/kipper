@@ -124,7 +124,37 @@ mod tests {
 
     #[test]
     fn get_jobs_queries_jobs_from_jenkins_api() {
-        get_jobs("changes".to_string());
+        let mock = mock("GET", "/job/changes-branches/api/json")
+            .with_status(200)
+            .with_header("content-type", "application/json;charset=utf-8")
+            .with_body(r#"
+                {
+                  "displayName": "changes-branches",
+                  "builds": [
+                    {
+                      "_class": "hudson.model.FreeStyleBuild",
+                      "number": 18,
+                      "url": "http://jenkins.example.com/job/changes-branches/18/"
+                    },
+                    {
+                      "_class": "hudson.model.FreeStyleBuild",
+                      "number": 17,
+                      "url": "http://jenkins.example.com/job/changes-branches/17/"
+                    }
+                  ]
+                }
+            "#)
+            .create();
+
+        let jobs = get_jobs("changes".to_string());
+
+        assert_eq!(
+            jobs,
+            [
+                "http://jenkins.example.com/job/changes-branches/18/",
+                "http://jenkins.example.com/job/changes-branches/17/"
+            ]
+        );
     }
 
     #[test]
