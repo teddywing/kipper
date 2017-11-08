@@ -25,6 +25,8 @@ extern crate mockito;
 extern crate reqwest;
 extern crate url;
 
+use std::thread;
+
 use self::reqwest::header::{Authorization, Basic};
 use self::url::Url;
 
@@ -65,12 +67,35 @@ pub fn find_and_track_build_and_update_status(commit_ref) {
     let jobs = get_jobs();
 
     for job_url in jobs {
-        let payload = request_job(job_url);
+        let job = request_job(job_url);
 
         // Does `displayName` match
-        if job_for_commit(payload, commit_ref) {
-            // spawn thread
-            let status = result_from_job(payload);
+        if job_for_commit(job, commit_ref) {
+            thread::spawn(|| {
+                // Start timer
+
+                github::update_commit_status(
+                    commit_ref,
+                    job.commit_status().result,
+                    job_url,
+                    None,
+                    "continuous-integration/jenkins".to_string()
+                );
+
+                if job.result == JobStatus::Pending {
+                    // loop
+                    // if timer > 20 minutes
+                    //   call github::update_commit_status with timeout error
+                    //   return
+                    // wait 30 seconds
+                    // call request_job again
+                    // if the status is different
+                    //   call github::update_commit_status
+                    //   stop
+                }
+            });
+
+            return
         }
     }
 }
