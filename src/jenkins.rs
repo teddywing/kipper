@@ -33,6 +33,11 @@ pub enum JobStatus {
     Unknown,
 }
 
+struct Job {
+    display_name: String,
+    result: String,
+}
+
 pub fn update_commit_status(commit_ref) {
     let jobs = get_jobs();
 
