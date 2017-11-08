@@ -31,6 +31,7 @@ use self::reqwest::header::{Authorization, Basic};
 use self::url::Url;
 
 use af83;
+use github;
 use pull_request::CommitRef;
 
 #[cfg(not(test))]
@@ -63,8 +64,11 @@ impl Job {
     }
 }
 
-pub fn find_and_track_build_and_update_status(commit_ref) {
-    let jobs = get_jobs();
+pub fn find_and_track_build_and_update_status(
+    repo_name: String,
+    commit_ref: CommitRef
+) {
+    let jobs = get_jobs(repo_name);
 
     for job_url in jobs {
         let job = request_job(job_url);
@@ -75,6 +79,7 @@ pub fn find_and_track_build_and_update_status(commit_ref) {
                 // Start timer
 
                 github::update_commit_status(
+                    repo_name,
                     commit_ref,
                     job.commit_status().result,
                     job_url,
