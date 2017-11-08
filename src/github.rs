@@ -1,4 +1,8 @@
 extern crate mockito;
+extern crate reqwest;
+
+use std::collections::HashMap;
+use std::fmt;
 
 use pull_request::CommitRef;
 
@@ -15,6 +19,17 @@ enum CommitStatus {
     Success,
 }
 
+impl fmt::Display for CommitStatus {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            CommitStatus::Error => write!(f, "error"),
+            CommitStatus::Failure => write!(f, "failure"),
+            CommitStatus::Pending => write!(f, "pending"),
+            CommitStatus::Success => write!(f, "success"),
+        }
+    }
+}
+
 fn update_commit_status(
     commit_ref: CommitRef,
     state: CommitStatus,
@@ -25,10 +40,13 @@ fn update_commit_status(
     let client = reqwest::Client::new();
 
     let mut params = HashMap::new();
-    params.insert("state", state);
+    params.insert("state", state.to_string());
     params.insert("target_url", target_url);
-    params.insert("description", description);
     params.insert("context", context);
+
+    if let Some(d) = description {
+        params.insert("description", d);
+    }
 
     let response = client.post(
         format!("{}/repos/{}/{}/statuses/{}", API_URL, commit_ref.repo, commit_ref.sha)
@@ -57,9 +75,9 @@ mod tests {
         update_commit_status(
             commit_ref,
             CommitStatus::Success,
-            "https://jenkins.example.com/job/octocat/3",
+            "https://jenkins.example.com/job/octocat/3".to_string(),
             None,
-            "continuous-integration/jenkins"
+            "continuous-integration/jenkins".to_string()
         );
 
         mock.assert();
