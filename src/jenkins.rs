@@ -35,7 +35,18 @@ pub enum JobStatus {
 
 struct Job {
     display_name: String,
-    result: String,
+    result: JobStatus,
+}
+
+impl Job {
+    fn new(payload: String) -> Job {
+        let mut job = json::parse(payload.as_ref()).unwrap();
+
+        Job {
+            display_name: job["displayName"].take_string().unwrap(),
+            result: result_from_job(job["result"].take_string()),
+        }
+    }
 }
 
 pub fn update_commit_status(commit_ref) {
@@ -76,21 +87,16 @@ pub fn get_jobs(repo_name: String) {//-> Vec<String> {
 pub fn job_for_commit(payload: String, commit_ref: CommitRef) -> bool {
 }
 
-pub fn result_from_job(payload: String) -> JobStatus {
-    let mut job = json::parse(payload.as_ref()).unwrap();
-
-    if job["result"].is_null() {
-        return JobStatus::Pending
-    }
-
-    let status = job["result"].take_string().unwrap();
-
-    if status == "SUCCESS" {
-        JobStatus::Success
-    } else if status == "FAILURE" {
-        JobStatus::Failure
-    } else {
-        JobStatus::Unknown
+pub fn result_from_job(status: Option<String>) -> JobStatus {
+    match status {
+        None => JobStatus::Pending,
+        Some(s) => {
+            match s.as_ref() {
+                "SUCCESS" => JobStatus::Success,
+                "FAILURE" => JobStatus::Failure,
+                _ => JobStatus::Unknown,
+            }
+        }
     }
 }
 
@@ -100,41 +106,43 @@ mod tests {
     use super::*;
 
     #[test]
+    fn job_new_creates_a_job_from_payload() {
+        let payload = r#"{
+            "displayName": "3296-fix-typo-700d0",
+            "result": "SUCCESS"
+        }"#.to_string();
+
+        let job = Job::new(payload);
+
+        assert_eq!(job.display_name, "3296-fix-typo-700d0");
+        assert_eq!(job.result, JobStatus::Success);
+    }
+
+    #[test]
     fn get_jobs_queries_jobs_from_jenkins_api() {
         get_jobs("changes".to_string());
     }
 
     #[test]
     fn result_from_job_is_success() {
-        let payload = r#"{
-            "result": "SUCCESS"
-        }"#;
-
         assert_eq!(
-            result_from_job(payload.to_owned()),
+            result_from_job(Some("SUCCESS".to_string())),
             JobStatus::Success
         );
     }
 
     #[test]
     fn result_from_job_is_failure() {
-        let payload = r#"{
-            "result": "FAILURE"
-        }"#;
-
         assert_eq!(
-            result_from_job(payload.to_owned()),
+            result_from_job(Some("FAILURE".to_string())),
             JobStatus::Failure
         );
     }
 
     #[test]
     fn result_from_job_is_pending() {
-        let payload = r#"{
-        }"#;
-
         assert_eq!(
-            result_from_job(payload.to_owned()),
+            result_from_job(None),
             JobStatus::Pending
         );
     }
