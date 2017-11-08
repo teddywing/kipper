@@ -33,6 +33,20 @@ pub enum JobStatus {
     Unknown,
 }
 
+pub fn update_commit_status(commit_ref) {
+    let jobs = get_jobs();
+
+    for job_url in jobs {
+        let payload = request_job(job_url);
+
+        // Does `displayName` match
+        if job_for_commit(payload, commit_ref) {
+            // spawn thread
+            let status = result_from_job(payload);
+        }
+    }
+}
+
 pub fn auth_credentials() -> Basic {
     Basic {
         username: "username".to_string(),
@@ -51,6 +65,10 @@ pub fn get_jobs(repo_name: String) {//-> Vec<String> {
         .unwrap();
 
     println!("{}", res.status());
+}
+
+// Does the `commit_ref` correspond to the job in the `payload`?
+pub fn job_for_commit(payload: String, commit_ref: CommitRef) -> bool {
 }
 
 pub fn result_from_job(payload: String) -> JobStatus {
