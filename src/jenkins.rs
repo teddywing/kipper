@@ -48,6 +48,17 @@ pub enum JobStatus {
     Unknown,
 }
 
+impl JobStatus {
+    fn commit_status(&self) -> github::CommitStatus {
+        match *self {
+            JobStatus::Success => github::CommitStatus::Success,
+            JobStatus::Failure => github::CommitStatus::Failure,
+            JobStatus::Pending => github::CommitStatus::Pending,
+            JobStatus::Unknown => github::CommitStatus::Error,
+        }
+    }
+}
+
 pub struct Job {
     display_name: String,
     result: JobStatus,
@@ -80,7 +91,7 @@ pub fn find_and_track_build_and_update_status(
 
                 github::update_commit_status(
                     commit_ref,
-                    job.commit_status().result,
+                    job.result.commit_status(),
                     job_url,
                     None,
                     "continuous-integration/jenkins".to_string()
