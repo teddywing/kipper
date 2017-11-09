@@ -33,7 +33,6 @@ impl fmt::Display for CommitStatus {
 }
 
 pub fn update_commit_status(
-    organization_name: String,
     commit_ref: CommitRef,
     state: CommitStatus,
     target_url: String,
@@ -55,7 +54,7 @@ pub fn update_commit_status(
             &format!(
                 "{}/repos/{}/{}/statuses/{}",
                 API_URL,
-                organization_name,
+                commit_ref.owner,
                 commit_ref.repo,
                 commit_ref.sha
             )
@@ -91,7 +90,6 @@ mod tests {
         };
 
         update_commit_status(
-            "octocat".to_string(),
             commit_ref,
             CommitStatus::Success,
             "https://jenkins.example.com/job/octocat/3".to_string(),
