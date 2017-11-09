@@ -26,6 +26,8 @@ extern crate reqwest;
 extern crate url;
 
 use std::thread;
+use std::thread::sleep;
+use std::time::{Duration, Instant};
 
 use self::reqwest::header::{Authorization, Basic};
 use self::url::Url;
@@ -80,6 +82,7 @@ pub fn find_and_track_build_and_update_status(
     commit_ref: CommitRef
 ) {
     let jobs = get_jobs(repo_name);
+    let t20_minutes = 60 * 20;
 
     for job_url in jobs {
         let job = request_job(job_url.as_ref());
@@ -88,16 +91,20 @@ pub fn find_and_track_build_and_update_status(
         if job_for_commit(&job, &commit_ref) {
             thread::spawn(move || {
                 // Start timer
+                let now = Instant::now();
+
+                let job_status = job.result;
+                let commit_status = job_status.commit_status();
 
                 github::update_commit_status(
                     &commit_ref,
-                    &job.result.commit_status(),
+                    &commit_status,
                     job_url.clone(),
                     None,
                     "continuous-integration/jenkins".to_string()
                 );
 
-                if job.result == JobStatus::Pending {
+                if job_status == JobStatus::Pending {
                     // loop
                     // if timer > 20 minutes
                     //   call github::update_commit_status with timeout error
@@ -107,6 +114,36 @@ pub fn find_and_track_build_and_update_status(
                     // if the status is different
                     //   call github::update_commit_status
                     //   stop
+
+                    loop {
+                        if now.elapsed().as_secs() == t20_minutes {
+                            github::update_commit_status(
+                                &commit_ref,
+                                &github::CommitStatus::Error,
+                                job_url.clone(),
+                                Some("The status checker timed out.".to_string()),
+                                "continuous-integration/jenkins".to_string()
+                            );
+
+                            return
+                        }
+
+                        sleep(Duration::from_secs(30));
+
+                        let job = request_job(job_url.as_ref());
+
+                        if job.result != job_status {
+                            github::update_commit_status(
+                                &commit_ref,
+                                &job.result.commit_status(),
+                                job_url.clone(),
+                                None,
+                                "continuous-integration/jenkins".to_string()
+                            );
+
+                            return
+                        }
+                    }
                 }
             });
 
