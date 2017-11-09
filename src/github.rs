@@ -90,8 +90,8 @@ mod tests {
         };
 
         update_commit_status(
-            commit_ref,
-            CommitStatus::Success,
+            &commit_ref,
+            &CommitStatus::Success,
             "https://jenkins.example.com/job/octocat/3".to_string(),
             None,
             "continuous-integration/jenkins".to_string()

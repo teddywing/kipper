@@ -21,7 +21,7 @@ mod tests {
         };
 
         assert_eq!(
-            job_name(commit_ref),
+            job_name(&commit_ref),
             "5912-make-logo-bigger-159f8"
         );
     }

@@ -251,7 +251,7 @@ mod tests {
             "#)
             .create();
 
-        let job = request_job("http://jenkins.example.com/job/changes-branches/15".to_string());
+        let job = request_job("http://jenkins.example.com/job/changes-branches/15");
 
         let expected = Job {
             display_name: "2388-delete-the-codes-391af".to_string(),
@@ -276,7 +276,7 @@ mod tests {
             branch: "1753-fix-everything".to_string(),
         };
 
-        assert_eq!(job_for_commit(job, commit_ref), true);
+        assert_eq!(job_for_commit(&job, &commit_ref), true);
     }
 
     #[test]
@@ -293,7 +293,7 @@ mod tests {
             branch: "1753-fix-everything".to_string(),
         };
 
-        assert_eq!(job_for_commit(job, commit_ref), false);
+        assert_eq!(job_for_commit(&job, &commit_ref), false);
     }
 
     #[test]
