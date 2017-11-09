@@ -1,6 +1,6 @@
 use pull_request::CommitRef;
 
-pub fn job_name(commit_ref: CommitRef) -> String {
+pub fn job_name(commit_ref: &CommitRef) -> String {
     let (sha, _) = commit_ref.sha.split_at(5);
 
     format!("{}-{}", commit_ref.branch, sha)

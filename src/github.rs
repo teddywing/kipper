@@ -33,8 +33,8 @@ impl fmt::Display for CommitStatus {
 }
 
 pub fn update_commit_status(
-    commit_ref: CommitRef,
-    state: CommitStatus,
+    commit_ref: &CommitRef,
+    state: &CommitStatus,
     target_url: String,
     description: Option<String>,
     context: String,

@@ -82,17 +82,17 @@ pub fn find_and_track_build_and_update_status(
     let jobs = get_jobs(repo_name);
 
     for job_url in jobs {
-        let job = request_job(job_url);
+        let job = request_job(job_url.as_ref());
 
         // Does `displayName` match
-        if job_for_commit(job, commit_ref) {
-            thread::spawn(|| {
+        if job_for_commit(&job, &commit_ref) {
+            thread::spawn(move || {
                 // Start timer
 
                 github::update_commit_status(
-                    commit_ref,
-                    job.result.commit_status(),
-                    job_url,
+                    &commit_ref,
+                    &job.result.commit_status(),
+                    job_url.clone(),
                     None,
                     "continuous-integration/jenkins".to_string()
                 );
@@ -143,7 +143,7 @@ pub fn get_jobs(repo_name: String) -> Vec<String> {
         .collect::<Vec<String>>()
 }
 
-pub fn request_job(url: String) -> Job {
+pub fn request_job(url: &str) -> Job {
     let url = Url::parse(url.as_ref()).unwrap();
 
     let client = reqwest::Client::new();
@@ -166,8 +166,8 @@ pub fn request_job(url: String) -> Job {
 }
 
 // Does the `commit_ref` correspond to the job?
-pub fn job_for_commit(job: Job, commit_ref: CommitRef) -> bool {
-    job.display_name == af83::job_name(commit_ref)
+pub fn job_for_commit(job: &Job, commit_ref: &CommitRef) -> bool {
+    job.display_name == af83::job_name(&commit_ref)
 }
 
 pub fn result_from_job(status: Option<String>) -> JobStatus {
