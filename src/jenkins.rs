@@ -77,11 +77,8 @@ impl Job {
     }
 }
 
-pub fn find_and_track_build_and_update_status(
-    repo_name: String,
-    commit_ref: CommitRef
-) {
-    let jobs = get_jobs(repo_name);
+pub fn find_and_track_build_and_update_status(commit_ref: CommitRef) {
+    let jobs = get_jobs(commit_ref.repo.as_ref());
     let t20_minutes = 60 * 20;
 
     for job_url in jobs {
@@ -158,7 +155,7 @@ pub fn auth_credentials() -> Basic {
     }
 }
 
-pub fn get_jobs(repo_name: String) -> Vec<String> {
+pub fn get_jobs(repo_name: &str) -> Vec<String> {
     let client = reqwest::Client::new();
 
     let credentials = auth_credentials();
@@ -263,7 +260,7 @@ mod tests {
             "#)
             .create();
 
-        let jobs = get_jobs("changes".to_string());
+        let jobs = get_jobs("changes");
 
         assert_eq!(
             jobs,
