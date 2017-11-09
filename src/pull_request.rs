@@ -3,6 +3,7 @@ extern crate json;
 
 #[derive(Debug)]
 pub struct CommitRef {
+    pub owner: String,
     pub repo: String,
     pub sha: String,
     pub branch: String,
@@ -18,6 +19,7 @@ impl CommitRef {
             .collect();
 
         CommitRef {
+            owner: github_push_event["repository"]["owner"]["name"].take_string().unwrap(),
             repo: github_push_event["repository"]["name"].take_string().unwrap(),
             sha: github_push_event["head_commit"]["id"].take_string().unwrap(),
             branch: branch_parts.last().unwrap().to_string(),
@@ -198,6 +200,7 @@ mod tests {
 
         let commit_ref = CommitRef::new(payload);
 
+        assert_eq!(commit_ref.owner, "baxterthehacker");
         assert_eq!(commit_ref.repo, "public-repo");
         assert_eq!(commit_ref.sha, "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c");
         assert_eq!(commit_ref.branch, "changes");

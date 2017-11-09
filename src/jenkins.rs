@@ -261,6 +261,7 @@ mod tests {
         };
 
         let commit_ref = CommitRef {
+            owner: "uso".to_string(),
             repo: "vivid-system".to_string(),
             sha: "b4a286e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c".to_string(),
             branch: "1753-fix-everything".to_string(),
@@ -277,6 +278,7 @@ mod tests {
         };
 
         let commit_ref = CommitRef {
+            owner: "uso".to_string(),
             repo: "vivid-system".to_string(),
             sha: "b4a286e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c".to_string(),
             branch: "1753-fix-everything".to_string(),

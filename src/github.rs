@@ -84,6 +84,7 @@ mod tests {
             .create();
 
         let commit_ref = CommitRef {
+            owner: "octocat".to_string(),
             repo: "Hello-World".to_string(),
             sha: "6dcb09b5b57875f334f61aebed695e2e4193db5e".to_string(),
             branch: "not-used".to_string(),
