@@ -65,6 +65,7 @@ impl Job {
 }
 
 pub fn find_and_track_build_and_update_status(
+    organization_name: String,
     repo_name: String,
     commit_ref: CommitRef
 ) {
@@ -79,7 +80,7 @@ pub fn find_and_track_build_and_update_status(
                 // Start timer
 
                 github::update_commit_status(
-                    repo_name,
+                    organization_name,
                     commit_ref,
                     job.commit_status().result,
                     job_url,

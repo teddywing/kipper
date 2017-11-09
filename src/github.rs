@@ -33,7 +33,7 @@ impl fmt::Display for CommitStatus {
 }
 
 pub fn update_commit_status(
-    repo_name: String,
+    organization_name: String,
     commit_ref: CommitRef,
     state: CommitStatus,
     target_url: String,
@@ -55,7 +55,7 @@ pub fn update_commit_status(
             &format!(
                 "{}/repos/{}/{}/statuses/{}",
                 API_URL,
-                repo_name,
+                organization_name,
                 commit_ref.repo,
                 commit_ref.sha
             )
