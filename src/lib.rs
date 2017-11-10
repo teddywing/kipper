@@ -1,4 +1,5 @@
-mod pull_request;
+pub mod jenkins;
+pub mod pull_request;
+
 mod github;
-mod jenkins;
 mod af83;
