@@ -238,7 +238,7 @@ mod tests {
 
     #[test]
     fn get_jobs_queries_jobs_from_jenkins_api() {
-        let mock = mock("GET", "/job/changes-branches/api/json")
+        let _mock = mock("GET", "/job/changes-branches/api/json")
             .with_status(200)
             .with_header("content-type", "application/json;charset=utf-8")
             .with_body(r#"
@@ -273,7 +273,7 @@ mod tests {
 
     #[test]
     fn request_job_queries_a_job_from_the_jenkins_api() {
-        let mock = mock("GET", "/job/changes-branches/15/api/json")
+        let _mock = mock("GET", "/job/changes-branches/15/api/json")
             .with_status(200)
             .with_header("content-type", "application/json;charset=utf-8")
             .with_body(r#"

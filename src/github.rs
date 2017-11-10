@@ -50,7 +50,7 @@ pub fn update_commit_status(
         params.insert("description", d);
     }
 
-    let response = client.post(
+    client.post(
             &format!(
                 "{}/repos/{}/{}/statuses/{}",
                 API_URL,
