@@ -82,7 +82,7 @@ pub fn find_and_track_build_and_update_status(commit_ref: CommitRef) {
     let t20_minutes = 60 * 20;
 
     for job_url in jobs {
-        let job = request_job(job_url.as_ref());
+        let mut job = request_job(job_url.as_ref());
 
         // Does `displayName` match
         if job_for_commit(&job, &commit_ref) {
@@ -139,7 +139,7 @@ pub fn find_and_track_build_and_update_status(commit_ref: CommitRef) {
                         return
                     }
 
-                    let job = updated_job;
+                    job = updated_job;
                 }
             });
 
