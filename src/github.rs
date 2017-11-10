@@ -4,7 +4,7 @@ extern crate reqwest;
 use std::collections::HashMap;
 use std::fmt;
 
-use self::reqwest::header::{Accept, qitem};
+use self::reqwest::header::{Accept, Authorization, Bearer, qitem};
 
 use pull_request::CommitRef;
 
@@ -62,6 +62,13 @@ pub fn update_commit_status(
         .header(
             Accept(
                 vec![qitem("application/vnd.github.v3+json".parse().unwrap())]
+            )
+        )
+        .header(
+            Authorization(
+                Bearer {
+                    token: "token".to_owned()
+                }
             )
         )
         .json(&params)
