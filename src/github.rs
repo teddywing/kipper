@@ -2,6 +2,7 @@ extern crate mockito;
 extern crate reqwest;
 
 use std::collections::HashMap;
+use std::error::Error;
 use std::fmt;
 
 use self::reqwest::header::{Accept, Authorization, Bearer, qitem};
@@ -38,7 +39,7 @@ pub fn update_commit_status(
     target_url: String,
     description: Option<String>,
     context: String,
-) {
+) -> Result<(), Box<Error>> {
     let client = reqwest::Client::new();
 
     let mut params = HashMap::new();
@@ -61,7 +62,7 @@ pub fn update_commit_status(
         )
         .header(
             Accept(
-                vec![qitem("application/vnd.github.v3+json".parse().unwrap())]
+                vec![qitem("application/vnd.github.v3+json".parse()?)]
             )
         )
         .header(
@@ -72,8 +73,9 @@ pub fn update_commit_status(
             )
         )
         .json(&params)
-        .send()
-        .unwrap();
+        .send()?;
+
+    Ok(())
 }
 
 
