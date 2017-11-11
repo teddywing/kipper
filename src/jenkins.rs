@@ -102,7 +102,14 @@ pub fn find_and_track_build_and_update_status(commit_ref: CommitRef)
                     job_url.clone(),
                     None,
                     "continuous-integration/jenkins".to_string()
-                ).expect("GitHub pending status update failed.");
+                ).expect(
+                    format!(
+                        "GitHub pending status update failed for {}/{} {}.",
+                        commit_ref.owner,
+                        commit_ref.repo,
+                        commit_ref.sha
+                    ).as_ref()
+                );
 
                 while job.result == JobStatus::Pending {
                     // loop
@@ -122,7 +129,14 @@ pub fn find_and_track_build_and_update_status(commit_ref: CommitRef)
                             job_url.clone(),
                             Some("The status checker timed out.".to_string()),
                             "continuous-integration/jenkins".to_string()
-                        ).expect("GitHub timeout error status update failed.");
+                        ).expect(
+                            format!(
+                                "GitHub timeout error status update failed for {}/{} {}.",
+                                commit_ref.owner,
+                                commit_ref.repo,
+                                commit_ref.sha
+                            ).as_ref()
+                        );
 
                         return
                     }
@@ -142,7 +156,14 @@ pub fn find_and_track_build_and_update_status(commit_ref: CommitRef)
                             job_url.clone(),
                             None,
                             "continuous-integration/jenkins".to_string()
-                        ).expect("GitHub status update failed.");
+                        ).expect(
+                            format!(
+                                "GitHub status update failed for {}/{} {}.",
+                                commit_ref.owner,
+                                commit_ref.repo,
+                                commit_ref.sha
+                            ).as_ref()
+                        );
 
                         return
                     }
