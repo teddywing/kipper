@@ -25,6 +25,7 @@ extern crate mockito;
 extern crate reqwest;
 extern crate url;
 
+use std::error::Error;
 use std::thread;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
@@ -67,22 +68,25 @@ pub struct Job {
 }
 
 impl Job {
-    fn new(payload: String) -> Job {
-        let mut job = json::parse(payload.as_ref()).unwrap();
+    fn new(payload: String) -> Result<Job, Box<Error>> {
+        let mut job = json::parse(payload.as_ref())?;
 
-        Job {
-            display_name: job["displayName"].take_string().unwrap(),
-            result: result_from_job(job["result"].take_string()),
-        }
+        Ok(
+            Job {
+                display_name: job["displayName"].take_string().unwrap_or_default(),
+                result: result_from_job(job["result"].take_string()),
+            }
+        )
     }
 }
 
-pub fn find_and_track_build_and_update_status(commit_ref: CommitRef) {
-    let jobs = get_jobs(commit_ref.repo.as_ref());
+pub fn find_and_track_build_and_update_status(commit_ref: CommitRef)
+    -> Result<(), Box<Error>> {
+    let jobs = get_jobs(commit_ref.repo.as_ref())?;
     let t20_minutes = 60 * 20;
 
     for job_url in jobs {
-        let mut job = request_job(job_url.as_ref());
+        let mut job = request_job(job_url.as_ref())?;
 
         // Does `displayName` match
         if job_for_commit(&job, &commit_ref) {
@@ -125,7 +129,7 @@ pub fn find_and_track_build_and_update_status(commit_ref: CommitRef) {
 
                     sleep(Duration::from_secs(30));
 
-                    let updated_job = request_job(job_url.as_ref());
+                    let updated_job = request_job(job_url.as_ref()).unwrap();
 
                     if job.result != updated_job.result {
                         github::update_commit_status(
@@ -143,9 +147,11 @@ pub fn find_and_track_build_and_update_status(commit_ref: CommitRef) {
                 }
             });
 
-            return
+            return Ok(())
         }
     }
+
+    Ok(())
 }
 
 pub fn auth_credentials() -> Basic {
@@ -155,29 +161,30 @@ pub fn auth_credentials() -> Basic {
     }
 }
 
-pub fn get_jobs(repo_name: &str) -> Vec<String> {
+pub fn get_jobs(repo_name: &str) -> Result<Vec<String>, Box<Error>> {
     let client = reqwest::Client::new();
 
     let credentials = auth_credentials();
 
     let mut response = client.get(&format!("{}/job/{}-branches/api/json", API_URL, repo_name))
         .header(Authorization(credentials))
-        .send()
-        .unwrap();
+        .send()?;
 
-    let body = response.text().unwrap();
+    let body = response.text()?;
 
-    let jobs = json::parse(body.as_ref()).unwrap();
+    let jobs = json::parse(body.as_ref())?;
 
-    jobs["builds"].members()
-        .map(|job| {
-            job["url"].clone().take_string().unwrap()
-        })
-        .collect::<Vec<String>>()
+    Ok(
+        jobs["builds"].members()
+            .map(|job| {
+                job["url"].clone().take_string().unwrap_or_default()
+            })
+            .collect::<Vec<String>>()
+    )
 }
 
-pub fn request_job(url: &str) -> Job {
-    let url = Url::parse(url.as_ref()).unwrap();
+pub fn request_job(url: &str) -> Result<Job, Box<Error>> {
+    let url = Url::parse(url.as_ref())?;
 
     let client = reqwest::Client::new();
 
@@ -185,17 +192,18 @@ pub fn request_job(url: &str) -> Job {
 
     let mut response = client.get(&format!("{}{}/api/json", API_URL, url.path()))
         .header(Authorization(credentials))
-        .send()
-        .unwrap();
+        .send()?;
 
-    let body = response.text().unwrap();
+    let body = response.text()?;
 
-    let mut job = json::parse(body.as_ref()).unwrap();
+    let mut job = json::parse(body.as_ref())?;
 
-    Job {
-        display_name: job["displayName"].take_string().unwrap(),
-        result: result_from_job(job["result"].take_string()),
-    }
+    Ok(
+        Job {
+            display_name: job["displayName"].take_string().unwrap_or_default(),
+            result: result_from_job(job["result"].take_string()),
+        }
+    )
 }
 
 // Does the `commit_ref` correspond to the job?
