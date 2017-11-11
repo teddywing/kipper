@@ -104,7 +104,7 @@ mod tests {
             "https://jenkins.example.com/job/octocat/3".to_string(),
             None,
             "continuous-integration/jenkins".to_string()
-        );
+        ).expect("Failed to update commit status");
 
         mock.assert();
     }

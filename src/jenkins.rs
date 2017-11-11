@@ -263,7 +263,7 @@ mod tests {
             "result": "SUCCESS"
         }"#.to_string();
 
-        let job = Job::new(payload);
+        let job = Job::new(payload).expect("Failed to create job from payload");
 
         assert_eq!(job.display_name, "3296-fix-typo-700d0");
         assert_eq!(job.result, JobStatus::Success);
@@ -293,7 +293,7 @@ mod tests {
             "#)
             .create();
 
-        let jobs = get_jobs("changes");
+        let jobs = get_jobs("changes").expect("Failed to request jobs");
 
         assert_eq!(
             jobs,
@@ -317,7 +317,8 @@ mod tests {
             "#)
             .create();
 
-        let job = request_job("http://jenkins.example.com/job/changes-branches/15");
+        let job = request_job("http://jenkins.example.com/job/changes-branches/15")
+            .expect("Failed to request job");
 
         let expected = Job {
             display_name: "2388-delete-the-codes-391af".to_string(),

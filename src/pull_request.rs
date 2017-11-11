@@ -448,7 +448,8 @@ mod tests {
           }
         }"#;
 
-        let commit_ref = CommitRef::new(payload);
+        let commit_ref = CommitRef::new(payload)
+            .expect("Failed to create CommitRef from payload");
 
         assert_eq!(commit_ref.owner, "baxterthehacker");
         assert_eq!(commit_ref.repo, "public-repo");
