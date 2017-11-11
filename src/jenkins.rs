@@ -102,7 +102,7 @@ pub fn find_and_track_build_and_update_status(commit_ref: CommitRef)
                     job_url.clone(),
                     None,
                     "continuous-integration/jenkins".to_string()
-                );
+                ).expect("GitHub pending status update failed.");
 
                 while job.result == JobStatus::Pending {
                     // loop
@@ -122,14 +122,18 @@ pub fn find_and_track_build_and_update_status(commit_ref: CommitRef)
                             job_url.clone(),
                             Some("The status checker timed out.".to_string()),
                             "continuous-integration/jenkins".to_string()
-                        );
+                        ).expect("GitHub timeout error status update failed.");
 
                         return
                     }
 
                     sleep(Duration::from_secs(30));
 
-                    let updated_job = request_job(job_url.as_ref()).unwrap();
+                    let updated_job = request_job(
+                        job_url.as_ref()
+                    ).expect(
+                        format!("Failed to request job '{}'.", job_url).as_ref()
+                    );
 
                     if job.result != updated_job.result {
                         github::update_commit_status(
@@ -138,7 +142,7 @@ pub fn find_and_track_build_and_update_status(commit_ref: CommitRef)
                             job_url.clone(),
                             None,
                             "continuous-integration/jenkins".to_string()
-                        );
+                        ).expect("GitHub status update failed.");
 
                         return
                     }
