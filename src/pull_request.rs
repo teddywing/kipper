@@ -1,5 +1,6 @@
 extern crate json;
 
+use std::error::Error;
 
 #[derive(Debug)]
 pub struct CommitRef {
@@ -10,15 +11,17 @@ pub struct CommitRef {
 }
 
 impl CommitRef {
-    pub fn new(json_str: &str) -> CommitRef {
-        let mut github_push_event = json::parse(json_str).unwrap();
+    pub fn new(json_str: &str) -> Result<CommitRef, Box<Error>> {
+        let mut github_push_event = json::parse(json_str)?;
 
-        CommitRef {
-            owner: github_push_event["pull_request"]["head"]["repo"]["owner"]["login"].take_string().unwrap(),
-            repo: github_push_event["pull_request"]["head"]["repo"]["name"].take_string().unwrap(),
-            sha: github_push_event["pull_request"]["head"]["sha"].take_string().unwrap(),
-            branch: github_push_event["pull_request"]["head"]["ref"].take_string().unwrap(),
-        }
+        Ok(
+            CommitRef {
+                owner: github_push_event["pull_request"]["head"]["repo"]["owner"]["login"].take_string().unwrap_or_default(),
+                repo: github_push_event["pull_request"]["head"]["repo"]["name"].take_string().unwrap_or_default(),
+                sha: github_push_event["pull_request"]["head"]["sha"].take_string().unwrap_or_default(),
+                branch: github_push_event["pull_request"]["head"]["ref"].take_string().unwrap_or_default(),
+            }
+        )
     }
 }
 
