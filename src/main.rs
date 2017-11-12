@@ -87,7 +87,7 @@ fn main() {
         None => DEFAULT_PORT,
     };
 
-    rouille::start_server("localhost:8000", move |request| {
+    rouille::start_server(format!("localhost:{}", port), move |request| {
         router!(request,
             (POST) (/github/pull_request_event) => {
                 let mut body = String::new();
