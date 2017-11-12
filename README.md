@@ -6,9 +6,9 @@ A server that updates GitHub pull request commit statuses from Jenkins builds.
 
 ## Prerequisites
 
-A Jenkins server configured with a "branches" project. This project will run a
-build for all new commits pushed to a branch. The project's name should match
-the GitHub repository name appended by "-branches". For example:
+A Jenkins server configured with a “branches” project. This project will run a
+build for all new commits pushed to a branch. The project’s name should match
+the GitHub repository name appended by “-branches”. For example:
 
 	kipper-branches
 
@@ -16,7 +16,7 @@ Each build name will have the following format:
 
 	branch-name-5ac92
 
-The branch name, followed by a hyphen "-", followed by the first five characters
+The branch name, followed by a hyphen “-”, followed by the first five characters
 of the commit SHA.
 
 
