@@ -270,6 +270,13 @@ mod tests {
 
     use super::*;
 
+    fn test_request_client() -> reqwest::Client {
+        jenkins_request_client(
+            &"username".to_owned(),
+            &"token".to_owned()
+        ).expect("Failed to build Jenkins request client")
+    }
+
     #[test]
     fn job_new_creates_a_job_from_payload() {
         let payload = r#"{
@@ -307,7 +314,8 @@ mod tests {
             "#)
             .create();
 
-        let jobs = get_jobs("changes").expect("Failed to request jobs");
+        let jobs = get_jobs(&test_request_client(), "changes")
+            .expect("Failed to request jobs");
 
         assert_eq!(
             jobs,
@@ -331,8 +339,10 @@ mod tests {
             "#)
             .create();
 
-        let job = request_job("http://jenkins.example.com/job/changes-branches/15")
-            .expect("Failed to request job");
+        let job = request_job(
+            &test_request_client(),
+            "http://jenkins.example.com/job/changes-branches/15"
+        ).expect("Failed to request job");
 
         let expected = Job {
             display_name: "2388-delete-the-codes-391af".to_string(),
