@@ -79,7 +79,7 @@ pub fn find_and_track_build_and_update_status(
     jenkins_url: &String,
     jenkins_user_id: &String,
     jenkins_token: &String,
-    github_token: &String,
+    github_token: String,
 ) -> Result<(), Box<Error>> {
     let jenkins_client = jenkins_request_client(
         &jenkins_user_id,
@@ -115,6 +115,7 @@ pub fn find_and_track_build_and_update_status(
                 let commit_status = job.result.commit_status();
 
                 github::update_commit_status(
+                    &github_token,
                     &commit_ref,
                     &commit_status,
                     job_url.clone(),
@@ -142,6 +143,7 @@ pub fn find_and_track_build_and_update_status(
 
                     if now.elapsed().as_secs() == t20_minutes {
                         github::update_commit_status(
+                            &github_token,
                             &commit_ref,
                             &github::CommitStatus::Error,
                             job_url.clone(),
@@ -171,6 +173,7 @@ pub fn find_and_track_build_and_update_status(
 
                     if job.result != updated_job.result {
                         github::update_commit_status(
+                            &github_token,
                             &commit_ref,
                             &job.result.commit_status(),
                             job_url.clone(),

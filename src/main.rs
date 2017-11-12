@@ -108,7 +108,7 @@ fn main() {
                             &jenkins_url,
                             &jenkins_user_id,
                             &jenkins_token,
-                            &github_token,
+                            github_token.clone(),
                         ) {
                             Ok(_) => {},
                             Err(_) => return internal_server_error(),

@@ -34,6 +34,7 @@ impl fmt::Display for CommitStatus {
 }
 
 pub fn update_commit_status(
+    github_token: &String,
     commit_ref: &CommitRef,
     state: &CommitStatus,
     target_url: String,
@@ -68,7 +69,7 @@ pub fn update_commit_status(
         .header(
             Authorization(
                 Bearer {
-                    token: "token".to_owned()
+                    token: github_token.to_owned()
                 }
             )
         )
