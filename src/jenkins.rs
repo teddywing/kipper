@@ -76,7 +76,7 @@ impl Job {
 
 pub fn find_and_track_build_and_update_status(
     commit_ref: CommitRef,
-    jenkins_url: &String,
+    jenkins_url: String,
     jenkins_user_id: &String,
     jenkins_token: &String,
     github_token: String,
@@ -85,12 +85,6 @@ pub fn find_and_track_build_and_update_status(
         &jenkins_user_id,
         &jenkins_token
     )?;
-
-    #[cfg(not(test))]
-    let jenkins_url = jenkins_url.to_owned();
-
-    #[cfg(test)]
-    let jenkins_url = mockito::SERVER_URL;
 
     let jobs = get_jobs(
         &jenkins_url,
@@ -337,8 +331,11 @@ mod tests {
             "#)
             .create();
 
-        let jobs = get_jobs(&test_request_client(), "changes")
-            .expect("Failed to request jobs");
+        let jobs = get_jobs(
+            &mockito::SERVER_URL.to_owned(),
+            &test_request_client(),
+            "changes"
+        ).expect("Failed to request jobs");
 
         assert_eq!(
             jobs,
@@ -363,6 +360,7 @@ mod tests {
             .create();
 
         let job = request_job(
+            &mockito::SERVER_URL.to_owned(),
             &test_request_client(),
             "http://jenkins.example.com/job/changes-branches/15"
         ).expect("Failed to request job");
