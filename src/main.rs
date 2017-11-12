@@ -1,5 +1,8 @@
 extern crate getopts;
 #[macro_use]
+extern crate log;
+extern crate stderrlog;
+#[macro_use]
 extern crate rouille;
 
 extern crate kipper;
@@ -87,6 +90,13 @@ fn main() {
         None => DEFAULT_PORT,
     };
 
+    // Logging
+    stderrlog::new()
+        .module(module_path!())
+        .timestamp(stderrlog::Timestamp::Second)
+        .init()
+        .expect("Logger failed to initialise");
+
     rouille::start_server(format!("localhost:{}", port), move |request| {
         router!(request,
             (POST) (/github/pull_request_event) => {
@@ -100,7 +110,11 @@ fn main() {
 
                         let commit_ref = match CommitRef::new(body.as_ref()) {
                             Ok(cr) => cr,
-                            Err(_) => return internal_server_error(),
+                            Err(e) => {
+                                error!("{}", e.to_string());
+
+                                return internal_server_error()
+                            },
                         };
 
                         match jenkins::find_and_track_build_and_update_status(
@@ -111,7 +125,11 @@ fn main() {
                             github_token.clone(),
                         ) {
                             Ok(_) => {},
-                            Err(_) => return internal_server_error(),
+                            Err(e) => {
+                                error!("{}", e.to_string());
+
+                                return internal_server_error()
+                            },
                         };
 
                         rouille::Response::text("202 Accepted")
