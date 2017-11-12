@@ -37,12 +37,6 @@ use af83;
 use github;
 use pull_request::CommitRef;
 
-#[cfg(not(test))]
-const API_URL: &'static str = "http://jenkins.example.com";
-
-#[cfg(test)]
-const API_URL: &'static str = mockito::SERVER_URL;
-
 #[derive(Debug, PartialEq, Eq)]
 pub enum JobStatus {
     Success,
@@ -91,11 +85,26 @@ pub fn find_and_track_build_and_update_status(
         &jenkins_user_id,
         &jenkins_token
     )?;
-    let jobs = get_jobs(&jenkins_client, commit_ref.repo.as_ref())?;
+
+    #[cfg(not(test))]
+    let jenkins_url = jenkins_url.to_owned();
+
+    #[cfg(test)]
+    let jenkins_url = mockito::SERVER_URL;
+
+    let jobs = get_jobs(
+        &jenkins_url,
+        &jenkins_client,
+        commit_ref.repo.as_ref()
+    )?;
     let t20_minutes = 60 * 20;
 
     for job_url in jobs {
-        let mut job = request_job(&jenkins_client, job_url.as_ref())?;
+        let mut job = request_job(
+            &jenkins_url,
+            &jenkins_client,
+            job_url.as_ref()
+        )?;
 
         // Does `displayName` match
         if job_for_commit(&job, &commit_ref) {
@@ -153,6 +162,7 @@ pub fn find_and_track_build_and_update_status(
                     sleep(Duration::from_secs(30));
 
                     let updated_job = request_job(
+                        &jenkins_url,
                         &jenkins_client,
                         job_url.as_ref()
                     ).expect(
@@ -196,9 +206,14 @@ pub fn auth_credentials(user_id: String, token: String) -> header::Basic {
     }
 }
 
-pub fn get_jobs(client: &reqwest::Client, repo_name: &str) -> Result<Vec<String>, Box<Error>> {
-    let mut response = client.get(&format!("{}/job/{}-branches/api/json", API_URL, repo_name))
-        .send()?;
+pub fn get_jobs(
+    jenkins_url: &String,
+    client: &reqwest::Client,
+    repo_name: &str
+) -> Result<Vec<String>, Box<Error>> {
+    let mut response = client.get(
+        &format!("{}/job/{}-branches/api/json", jenkins_url, repo_name)
+    ).send()?;
 
     let body = response.text()?;
 
@@ -213,11 +228,16 @@ pub fn get_jobs(client: &reqwest::Client, repo_name: &str) -> Result<Vec<String>
     )
 }
 
-pub fn request_job(client: &reqwest::Client, url: &str) -> Result<Job, Box<Error>> {
+pub fn request_job(
+    jenkins_url: &String,
+    client: &reqwest::Client,
+    url: &str
+) -> Result<Job, Box<Error>> {
     let url = Url::parse(url.as_ref())?;
 
-    let mut response = client.get(&format!("{}{}/api/json", API_URL, url.path()))
-        .send()?;
+    let mut response = client.get(
+        &format!("{}{}/api/json", jenkins_url, url.path())
+    ).send()?;
 
     let body = response.text()?;
 
