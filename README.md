@@ -23,7 +23,7 @@ of the commit SHA.
 ## Setup
 
 Kipper runs a web server that listens for a GitHub webhook. Configure your
-GitHub project with the following settings:
+GitHub project with the following webhook settings:
 
 	Payload URL: http://example.com/github/pull_request_event
 	Content type: application/json
