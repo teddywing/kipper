@@ -100,6 +100,7 @@ mod tests {
         };
 
         update_commit_status(
+            &"token".to_owned(),
             &commit_ref,
             &CommitStatus::Success,
             "https://jenkins.example.com/job/octocat/3".to_string(),
