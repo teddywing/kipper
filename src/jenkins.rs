@@ -238,14 +238,9 @@ pub fn request_job(
 
     let body = response.text()?;
 
-    let mut job = json::parse(body.as_ref())?;
+    let job = Job::new(body)?;
 
-    Ok(
-        Job {
-            display_name: job["displayName"].take_string().unwrap_or_default(),
-            result: result_from_job(job["result"].take_string()),
-        }
-    )
+    Ok(job)
 }
 
 // Does the `commit_ref` correspond to the job?
