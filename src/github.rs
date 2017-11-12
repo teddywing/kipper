@@ -93,19 +93,19 @@ mod tests {
             .create();
 
         let commit_ref = CommitRef {
-            owner: "octocat".to_string(),
-            repo: "Hello-World".to_string(),
-            sha: "6dcb09b5b57875f334f61aebed695e2e4193db5e".to_string(),
-            branch: "not-used".to_string(),
+            owner: "octocat".to_owned(),
+            repo: "Hello-World".to_owned(),
+            sha: "6dcb09b5b57875f334f61aebed695e2e4193db5e".to_owned(),
+            branch: "not-used".to_owned(),
         };
 
         update_commit_status(
             &"token".to_owned(),
             &commit_ref,
             &CommitStatus::Success,
-            "https://jenkins.example.com/job/octocat/3".to_string(),
+            "https://jenkins.example.com/job/octocat/3".to_owned(),
             None,
-            "continuous-integration/jenkins".to_string()
+            "continuous-integration/jenkins".to_owned()
         ).expect("Failed to update commit status");
 
         mock.assert();

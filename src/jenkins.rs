@@ -114,7 +114,7 @@ pub fn find_and_track_build_and_update_status(
                     &commit_status,
                     job_url.clone(),
                     None,
-                    "continuous-integration/jenkins".to_string()
+                    "continuous-integration/jenkins".to_owned()
                 ).expect(
                     format!(
                         "GitHub pending status update failed for {}/{} {}.",
@@ -141,8 +141,8 @@ pub fn find_and_track_build_and_update_status(
                             &commit_ref,
                             &github::CommitStatus::Error,
                             job_url.clone(),
-                            Some("The status checker timed out.".to_string()),
-                            "continuous-integration/jenkins".to_string()
+                            Some("The status checker timed out.".to_owned()),
+                            "continuous-integration/jenkins".to_owned()
                         ).expect(
                             format!(
                                 "GitHub timeout error status update failed for {}/{} {}.",
@@ -172,7 +172,7 @@ pub fn find_and_track_build_and_update_status(
                             &job.result.commit_status(),
                             job_url.clone(),
                             None,
-                            "continuous-integration/jenkins".to_string()
+                            "continuous-integration/jenkins".to_owned()
                         ).expect(
                             format!(
                                 "GitHub status update failed for {}/{} {}.",
@@ -294,7 +294,7 @@ mod tests {
         let payload = r#"{
             "displayName": "3296-fix-typo-700d0",
             "result": "SUCCESS"
-        }"#.to_string();
+        }"#.to_owned();
 
         let job = Job::new(payload).expect("Failed to create job from payload");
 
@@ -361,7 +361,7 @@ mod tests {
         ).expect("Failed to request job");
 
         let expected = Job {
-            display_name: "2388-delete-the-codes-391af".to_string(),
+            display_name: "2388-delete-the-codes-391af".to_owned(),
             result: JobStatus::Success,
         };
 
@@ -372,15 +372,15 @@ mod tests {
     #[test]
     fn job_for_commit_returns_true_when_commit_matches_job() {
         let job = Job {
-            display_name: "1753-fix-everything-b4a28".to_string(),
+            display_name: "1753-fix-everything-b4a28".to_owned(),
             result: JobStatus::Pending,
         };
 
         let commit_ref = CommitRef {
-            owner: "uso".to_string(),
-            repo: "vivid-system".to_string(),
-            sha: "b4a286e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c".to_string(),
-            branch: "1753-fix-everything".to_string(),
+            owner: "uso".to_owned(),
+            repo: "vivid-system".to_owned(),
+            sha: "b4a286e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c".to_owned(),
+            branch: "1753-fix-everything".to_owned(),
         };
 
         assert_eq!(job_for_commit(&job, &commit_ref), true);
@@ -389,15 +389,15 @@ mod tests {
     #[test]
     fn job_for_commit_returns_false_when_commit_doesnt_match_job() {
         let job = Job {
-            display_name: "5234-eliminate-widgetmacallit-5a28c".to_string(),
+            display_name: "5234-eliminate-widgetmacallit-5a28c".to_owned(),
             result: JobStatus::Success,
         };
 
         let commit_ref = CommitRef {
-            owner: "uso".to_string(),
-            repo: "vivid-system".to_string(),
-            sha: "b4a286e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c".to_string(),
-            branch: "1753-fix-everything".to_string(),
+            owner: "uso".to_owned(),
+            repo: "vivid-system".to_owned(),
+            sha: "b4a286e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c".to_owned(),
+            branch: "1753-fix-everything".to_owned(),
         };
 
         assert_eq!(job_for_commit(&job, &commit_ref), false);
@@ -406,7 +406,7 @@ mod tests {
     #[test]
     fn result_from_job_is_success() {
         assert_eq!(
-            result_from_job(Some("SUCCESS".to_string())),
+            result_from_job(Some("SUCCESS".to_owned())),
             JobStatus::Success
         );
     }
@@ -414,7 +414,7 @@ mod tests {
     #[test]
     fn result_from_job_is_failure() {
         assert_eq!(
-            result_from_job(Some("FAILURE".to_string())),
+            result_from_job(Some("FAILURE".to_owned())),
             JobStatus::Failure
         );
     }
