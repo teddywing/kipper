@@ -30,7 +30,7 @@ use std::thread;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
-use self::reqwest::header::{Authorization, Basic};
+use self::reqwest::header;
 use self::url::Url;
 
 use af83;
@@ -87,11 +87,15 @@ pub fn find_and_track_build_and_update_status(
     jenkins_token: &String,
     github_token: &String,
 ) -> Result<(), Box<Error>> {
-    let jobs = get_jobs(commit_ref.repo.as_ref())?;
+    let jenkins_client = jenkins_request_client(
+        &jenkins_user_id,
+        &jenkins_token
+    )?;
+    let jobs = get_jobs(&jenkins_client, commit_ref.repo.as_ref())?;
     let t20_minutes = 60 * 20;
 
     for job_url in jobs {
-        let mut job = request_job(job_url.as_ref())?;
+        let mut job = request_job(&jenkins_client, job_url.as_ref())?;
 
         // Does `displayName` match
         if job_for_commit(&job, &commit_ref) {
@@ -149,6 +153,7 @@ pub fn find_and_track_build_and_update_status(
                     sleep(Duration::from_secs(30));
 
                     let updated_job = request_job(
+                        &jenkins_client,
                         job_url.as_ref()
                     ).expect(
                         format!("Failed to request job '{}'.", job_url).as_ref()
@@ -184,20 +189,15 @@ pub fn find_and_track_build_and_update_status(
     Ok(())
 }
 
-pub fn auth_credentials() -> Basic {
-    Basic {
-        username: "username".to_string(),
-        password: Some("token".to_string()),
+pub fn auth_credentials(user_id: String, token: String) -> header::Basic {
+    header::Basic {
+        username: user_id,
+        password: Some(token),
     }
 }
 
-pub fn get_jobs(repo_name: &str) -> Result<Vec<String>, Box<Error>> {
-    let client = reqwest::Client::new();
-
-    let credentials = auth_credentials();
-
+pub fn get_jobs(client: &reqwest::Client, repo_name: &str) -> Result<Vec<String>, Box<Error>> {
     let mut response = client.get(&format!("{}/job/{}-branches/api/json", API_URL, repo_name))
-        .header(Authorization(credentials))
         .send()?;
 
     let body = response.text()?;
@@ -213,15 +213,10 @@ pub fn get_jobs(repo_name: &str) -> Result<Vec<String>, Box<Error>> {
     )
 }
 
-pub fn request_job(url: &str) -> Result<Job, Box<Error>> {
+pub fn request_job(client: &reqwest::Client, url: &str) -> Result<Job, Box<Error>> {
     let url = Url::parse(url.as_ref())?;
 
-    let client = reqwest::Client::new();
-
-    let credentials = auth_credentials();
-
     let mut response = client.get(&format!("{}{}/api/json", API_URL, url.path()))
-        .header(Authorization(credentials))
         .send()?;
 
     let body = response.text()?;
@@ -252,6 +247,20 @@ pub fn result_from_job(status: Option<String>) -> JobStatus {
             }
         }
     }
+}
+
+
+fn jenkins_request_client(user_id: &String, token: &String) -> Result<reqwest::Client, Box<Error>> {
+    let credentials = auth_credentials(user_id.to_owned(), token.to_owned());
+
+    let mut headers = header::Headers::new();
+    headers.set(header::Authorization(credentials));
+
+    let client = reqwest::Client::builder()
+        .default_headers(headers)
+        .build()?;
+
+    Ok(client)
 }
 
 
