@@ -80,8 +80,13 @@ impl Job {
     }
 }
 
-pub fn find_and_track_build_and_update_status(commit_ref: CommitRef)
-    -> Result<(), Box<Error>> {
+pub fn find_and_track_build_and_update_status(
+    commit_ref: CommitRef,
+    jenkins_url: &String,
+    jenkins_user_id: &String,
+    jenkins_token: &String,
+    github_token: &String,
+) -> Result<(), Box<Error>> {
     let jobs = get_jobs(commit_ref.repo.as_ref())?;
     let t20_minutes = 60 * 20;
 

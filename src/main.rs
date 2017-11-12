@@ -103,7 +103,13 @@ fn main() {
                             Err(_) => return internal_server_error(),
                         };
 
-                        match jenkins::find_and_track_build_and_update_status(commit_ref) {
+                        match jenkins::find_and_track_build_and_update_status(
+                            commit_ref,
+                            &jenkins_url,
+                            &jenkins_user_id,
+                            &jenkins_token,
+                            &github_token,
+                        ) {
                             Ok(_) => {},
                             Err(_) => return internal_server_error(),
                         };
