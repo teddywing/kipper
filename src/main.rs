@@ -97,7 +97,7 @@ fn main() {
         .init()
         .expect("Logger failed to initialise");
 
-    rouille::start_server(format!("localhost:{}", port), move |request| {
+    rouille::start_server(format!("127.0.0.1:{}", port), move |request| {
         router!(request,
             (POST) (/github/pull_request_event) => {
                 let mut body = String::new();
