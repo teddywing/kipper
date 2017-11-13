@@ -93,6 +93,9 @@ pub fn update_commit_status(
         .json(&params)
         .send()?;
 
+    debug!("{}", response.url());
+    debug!("{}", response.status());
+    debug!("{}", response.headers());
     debug!("{}", response.text()?);
 
     Ok(())
