@@ -97,17 +97,28 @@ pub fn find_and_track_build_and_update_status(
     jenkins_user_id: &String,
     jenkins_token: &String,
     github_token: String,
-) -> Result<(), Box<Error>> {
+// ) -> Result<(), Box<Error>> {
+// ) -> thread::JoinHandle {
+) -> thread::JoinHandle<()> {
+    thread::spawn(move || {
+    // Wait for Jenkins to warm up
+    sleep(Duration::from_secs(10));
+
     let jenkins_client = jenkins_request_client(
         &jenkins_user_id,
         &jenkins_token
-    )?;
+    ).expect("Failed to initialise Jenkins HTTP client");
 
     let jobs = get_jobs(
         &jenkins_url,
         &jenkins_client,
         commit_ref.repo.as_ref()
-    )?;
+    ).expect(
+        format!(
+            "Failed to request Jenkins jobs for {}",
+            commit_ref.repo
+        ).as_ref()
+    );
     let t20_minutes = 60 * 20;
 
     for job_url in jobs {
@@ -115,7 +126,9 @@ pub fn find_and_track_build_and_update_status(
             &jenkins_url,
             &jenkins_client,
             job_url.as_ref()
-        )?;
+        ).expect(
+            format!("Failed to request Jenkins job {}", job_url).as_ref()
+        );
 
         // Does `displayName` match
         if job_for_commit(&job, &commit_ref) {
@@ -206,11 +219,13 @@ pub fn find_and_track_build_and_update_status(
                 }
             });
 
-            return Ok(())
+            // return Ok(())
+            return
         }
     }
+    })
 
-    Ok(())
+    // Ok(())
 }
 
 pub fn auth_credentials(user_id: String, token: String) -> header::Basic {
