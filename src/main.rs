@@ -25,7 +25,9 @@ extern crate rouille;
 extern crate kipper;
 
 use std::env;
+use std::thread;
 use std::io::Read;
+use std::time::Duration;
 
 use getopts::Options;
 
@@ -137,20 +139,30 @@ fn main() {
                             },
                         };
 
-                        match jenkins::find_and_track_build_and_update_status(
-                            commit_ref,
-                            jenkins_url.clone(),
-                            &jenkins_user_id,
-                            &jenkins_token,
-                            github_token.clone(),
-                        ) {
-                            Ok(_) => {},
-                            Err(e) => {
-                                error!("{}", e.to_string());
+                        // TODO: Get rid of clones
+                        let jenkins_url = jenkins_url.clone();
+                        let jenkins_user_id = jenkins_user_id.clone();
+                        let jenkins_token = jenkins_token.clone();
+                        let github_token = github_token.clone();
 
-                                return internal_server_error()
-                            },
-                        };
+                        thread::spawn(move || {
+                            thread::sleep(Duration::from_secs(30));
+
+                            match jenkins::find_and_track_build_and_update_status(
+                                commit_ref,
+                                &jenkins_url,
+                                &jenkins_user_id,
+                                &jenkins_token,
+                                &github_token,
+                            ) {
+                                Ok(_) => {},
+                                Err(e) => {
+                                    error!("{}", e.to_string());
+
+                                    // return internal_server_error()
+                                },
+                            };
+                        });
 
                         rouille::Response::text("202 Accepted")
                             .with_status_code(202)

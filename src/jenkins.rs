@@ -43,7 +43,6 @@ extern crate reqwest;
 extern crate url;
 
 use std::error::Error;
-use std::thread;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
@@ -93,46 +92,46 @@ impl Job {
 
 pub fn find_and_track_build_and_update_status(
     commit_ref: CommitRef,
-    jenkins_url: String,
-    jenkins_user_id: &String,
-    jenkins_token: &String,
-    github_token: String,
-// ) -> Result<(), Box<Error>> {
-// ) -> thread::JoinHandle {
-) -> thread::JoinHandle<()> {
-    thread::spawn(move || {
-    // Wait for Jenkins to warm up
-    sleep(Duration::from_secs(10));
+    // jenkins_url: String,
+    // jenkins_user_id: &String,
+    // jenkins_token: &String,
+    // github_token: String,
+    jenkins_url: &str,
+    jenkins_user_id: &str,
+    jenkins_token: &str,
+    github_token: &str,
+) -> Result<(), Box<Error>> {
+    // TODO: Remove this, rest should take same type as arguments maybe
+    let jenkins_url = jenkins_url.to_owned();
+    let jenkins_user_id = &jenkins_user_id.to_owned();
+    let jenkins_token = &jenkins_token.to_owned();
+    let github_token = github_token.to_owned();
 
     let jenkins_client = jenkins_request_client(
         &jenkins_user_id,
         &jenkins_token
-    ).expect("Failed to initialise Jenkins HTTP client");
+    )?;
 
     let jobs = get_jobs(
         &jenkins_url,
         &jenkins_client,
         commit_ref.repo.as_ref()
-    ).expect(
-        format!(
-            "Failed to request Jenkins jobs for {}",
-            commit_ref.repo
-        ).as_ref()
-    );
+    )?;
     let t20_minutes = 60 * 20;
 
     for job_url in jobs {
+        info!("Looking for job: {}", job_url);
+
         let mut job = request_job(
             &jenkins_url,
             &jenkins_client,
             job_url.as_ref()
-        ).expect(
-            format!("Failed to request Jenkins job {}", job_url).as_ref()
-        );
+        )?;
 
         // Does `displayName` match
         if job_for_commit(&job, &commit_ref) {
-            thread::spawn(move || {
+            info!("Job found: {}", job_url);
+            // thread::spawn(move || {
                 // Start timer
                 let now = Instant::now();
 
@@ -165,6 +164,8 @@ pub fn find_and_track_build_and_update_status(
                     //   call github::update_commit_status
                     //   stop
 
+                    info!("Waiting for job to finish");
+
                     if now.elapsed().as_secs() == t20_minutes {
                         github::update_commit_status(
                             &github_token,
@@ -182,7 +183,7 @@ pub fn find_and_track_build_and_update_status(
                             ).as_ref()
                         );
 
-                        return
+                        return Ok(())
                     }
 
                     sleep(Duration::from_secs(30));
@@ -212,20 +213,18 @@ pub fn find_and_track_build_and_update_status(
                             ).as_ref()
                         );
 
-                        return
+                        return Ok(())
                     }
 
                     job = updated_job;
                 }
-            });
+            // });
 
-            // return Ok(())
-            return
+            return Ok(())
         }
     }
-    })
 
-    // Ok(())
+    Ok(())
 }
 
 pub fn auth_credentials(user_id: String, token: String) -> header::Basic {
