@@ -113,7 +113,7 @@ fn main() {
     stderrlog::new()
         .module(module_path!())
         .timestamp(stderrlog::Timestamp::Second)
-        .verbosity(4) // LogLevel::Trace
+        .verbosity(2) // LogLevel::Info
         .init()
         .expect("Logger failed to initialise");
 

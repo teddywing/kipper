@@ -110,7 +110,7 @@ pub fn find_and_track_build_and_update_status(
     let t20_minutes = 60 * 20;
 
     for job_url in jobs {
-        info!("Looking for job: {}", job_url);
+        debug!("Looking for job: {}", job_url);
 
         let mut job = request_job(
             &jenkins_url,
@@ -120,7 +120,7 @@ pub fn find_and_track_build_and_update_status(
 
         // Does `displayName` match
         if job_for_commit(&job, &commit_ref) {
-            info!("Job found: {}", job_url);
+            debug!("Job found: {}", job_url);
 
             // Start timer
             let now = Instant::now();
@@ -154,7 +154,7 @@ pub fn find_and_track_build_and_update_status(
                 //   call github::update_commit_status
                 //   stop
 
-                info!("Waiting for job to finish");
+                debug!("Waiting for job to finish");
 
                 if now.elapsed().as_secs() == t20_minutes {
                     github::update_commit_status(
