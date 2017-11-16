@@ -28,9 +28,9 @@ pub struct CommitRef {
 }
 
 impl CommitRef {
-    pub fn new(json_str: &str) -> Result<CommitRef, Box<Error>> {
-        let mut github_push_event = json::parse(json_str)?;
-
+    pub fn new(
+        mut github_push_event: json::JsonValue
+    ) -> Result<CommitRef, Box<Error>> {
         Ok(
             CommitRef {
                 owner: github_push_event["pull_request"]["head"]["repo"]["owner"]["login"].take_string().unwrap_or_default(),
@@ -477,7 +477,10 @@ mod tests {
           }
         }"#;
 
-        let commit_ref = CommitRef::new(payload)
+        let json = json::parse(payload)
+            .expect("Failed to parse payload.");
+
+        let commit_ref = CommitRef::new(json)
             .expect("Failed to create CommitRef from payload");
 
         assert_eq!(commit_ref.owner, "baxterthehacker");
