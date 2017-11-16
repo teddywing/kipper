@@ -200,7 +200,7 @@ pub fn find_and_track_build_and_update_status(
                         github::update_commit_status(
                             &github_token,
                             &commit_ref,
-                            &job.result.commit_status(),
+                            &updated_job.result.commit_status(),
                             job_url.clone(),
                             None,
                             "continuous-integration/jenkins".to_owned()
