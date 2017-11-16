@@ -139,7 +139,9 @@ fn main() {
                             },
                         };
 
-                        // TODO: Get rid of clones
+                        // Clone so we can use these values in the thread
+                        // closure. Since both closures are required to be
+                        // 'static, we can't use references to these values.
                         let jenkins_url = jenkins_url.clone();
                         let jenkins_user_id = jenkins_user_id.clone();
                         let jenkins_token = jenkins_token.clone();
