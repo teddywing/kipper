@@ -152,10 +152,10 @@ fn main() {
 
                             match jenkins::find_and_track_build_and_update_status(
                                 commit_ref,
-                                &jenkins_url,
+                                jenkins_url,
                                 &jenkins_user_id,
                                 &jenkins_token,
-                                &github_token,
+                                github_token,
                             ) {
                                 Ok(_) => {},
                                 Err(e) => {

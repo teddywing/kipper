@@ -92,21 +92,11 @@ impl Job {
 
 pub fn find_and_track_build_and_update_status(
     commit_ref: CommitRef,
-    // jenkins_url: String,
-    // jenkins_user_id: &String,
-    // jenkins_token: &String,
-    // github_token: String,
-    jenkins_url: &str,
-    jenkins_user_id: &str,
-    jenkins_token: &str,
-    github_token: &str,
+    jenkins_url: String,
+    jenkins_user_id: &String,
+    jenkins_token: &String,
+    github_token: String,
 ) -> Result<(), Box<Error>> {
-    // TODO: Remove this, rest should take same type as arguments maybe
-    let jenkins_url = jenkins_url.to_owned();
-    let jenkins_user_id = &jenkins_user_id.to_owned();
-    let jenkins_token = &jenkins_token.to_owned();
-    let github_token = github_token.to_owned();
-
     let jenkins_client = jenkins_request_client(
         &jenkins_user_id,
         &jenkins_token
