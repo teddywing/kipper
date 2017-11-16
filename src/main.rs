@@ -158,11 +158,7 @@ fn main() {
                                 github_token,
                             ) {
                                 Ok(_) => {},
-                                Err(e) => {
-                                    error!("{}", e.to_string());
-
-                                    // return internal_server_error()
-                                },
+                                Err(e) => error!("{}", e.to_string()),
                             };
                         });
 
