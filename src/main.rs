@@ -122,12 +122,11 @@ fn main() {
     rouille::start_server(format!("127.0.0.1:{}", port), move |request| {
         router!(request,
             (POST) (/github/pull_request_event) => {
-                let mut body = String::new();
-
                 match request.data() {
                     None => rouille::Response::text("400 Bad Request")
                         .with_status_code(400),
                     Some(mut data) => {
+                        let mut body = String::new();
                         try_or_400!(data.read_to_string(&mut body));
 
                         let commit_ref = match CommitRef::new(body.as_ref()) {
