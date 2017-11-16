@@ -43,7 +43,6 @@ extern crate reqwest;
 extern crate url;
 
 use std::error::Error;
-use std::thread;
 use std::thread::sleep;
 use std::time::{Duration, Instant};
 
@@ -111,6 +110,8 @@ pub fn find_and_track_build_and_update_status(
     let t20_minutes = 60 * 20;
 
     for job_url in jobs {
+        info!("Looking for job: {}", job_url);
+
         let mut job = request_job(
             &jenkins_url,
             &jenkins_client,
@@ -119,92 +120,94 @@ pub fn find_and_track_build_and_update_status(
 
         // Does `displayName` match
         if job_for_commit(&job, &commit_ref) {
-            thread::spawn(move || {
-                // Start timer
-                let now = Instant::now();
+            info!("Job found: {}", job_url);
 
-                let commit_status = job.result.commit_status();
+            // Start timer
+            let now = Instant::now();
 
-                github::update_commit_status(
-                    &github_token,
-                    &commit_ref,
-                    &commit_status,
-                    job_url.clone(),
-                    None,
-                    "continuous-integration/jenkins".to_owned()
-                ).expect(
-                    format!(
-                        "GitHub pending status update failed for {}/{} {}.",
-                        commit_ref.owner,
-                        commit_ref.repo,
-                        commit_ref.sha
-                    ).as_ref()
-                );
+            let commit_status = job.result.commit_status();
 
-                while job.result == JobStatus::Pending {
-                    // loop
-                    // if timer > 20 minutes
-                    //   call github::update_commit_status with timeout error
-                    //   return
-                    // wait 30 seconds
-                    // call request_job again
-                    // if the status is different
-                    //   call github::update_commit_status
-                    //   stop
+            github::update_commit_status(
+                &github_token,
+                &commit_ref,
+                &commit_status,
+                job_url.clone(),
+                None,
+                "continuous-integration/jenkins".to_owned()
+            ).expect(
+                format!(
+                    "GitHub pending status update failed for {}/{} {}.",
+                    commit_ref.owner,
+                    commit_ref.repo,
+                    commit_ref.sha
+                ).as_ref()
+            );
 
-                    if now.elapsed().as_secs() == t20_minutes {
-                        github::update_commit_status(
-                            &github_token,
-                            &commit_ref,
-                            &github::CommitStatus::Error,
-                            job_url.clone(),
-                            Some("The status checker timed out.".to_owned()),
-                            "continuous-integration/jenkins".to_owned()
-                        ).expect(
-                            format!(
-                                "GitHub timeout error status update failed for {}/{} {}.",
-                                commit_ref.owner,
-                                commit_ref.repo,
-                                commit_ref.sha
-                            ).as_ref()
-                        );
+            while job.result == JobStatus::Pending {
+                // loop
+                // if timer > 20 minutes
+                //   call github::update_commit_status with timeout error
+                //   return
+                // wait 30 seconds
+                // call request_job again
+                // if the status is different
+                //   call github::update_commit_status
+                //   stop
 
-                        return
-                    }
+                info!("Waiting for job to finish");
 
-                    sleep(Duration::from_secs(30));
-
-                    let updated_job = request_job(
-                        &jenkins_url,
-                        &jenkins_client,
-                        job_url.as_ref()
+                if now.elapsed().as_secs() == t20_minutes {
+                    github::update_commit_status(
+                        &github_token,
+                        &commit_ref,
+                        &github::CommitStatus::Error,
+                        job_url.clone(),
+                        Some("The status checker timed out.".to_owned()),
+                        "continuous-integration/jenkins".to_owned()
                     ).expect(
-                        format!("Failed to request job '{}'.", job_url).as_ref()
+                        format!(
+                            "GitHub timeout error status update failed for {}/{} {}.",
+                            commit_ref.owner,
+                            commit_ref.repo,
+                            commit_ref.sha
+                        ).as_ref()
                     );
 
-                    if job.result != updated_job.result {
-                        github::update_commit_status(
-                            &github_token,
-                            &commit_ref,
-                            &job.result.commit_status(),
-                            job_url.clone(),
-                            None,
-                            "continuous-integration/jenkins".to_owned()
-                        ).expect(
-                            format!(
-                                "GitHub status update failed for {}/{} {}.",
-                                commit_ref.owner,
-                                commit_ref.repo,
-                                commit_ref.sha
-                            ).as_ref()
-                        );
-
-                        return
-                    }
-
-                    job = updated_job;
+                    return Ok(())
                 }
-            });
+
+                sleep(Duration::from_secs(30));
+
+                let updated_job = request_job(
+                    &jenkins_url,
+                    &jenkins_client,
+                    job_url.as_ref()
+                ).expect(
+                    format!("Failed to request job '{}'.", job_url).as_ref()
+                );
+
+                if job.result != updated_job.result {
+                    github::update_commit_status(
+                        &github_token,
+                        &commit_ref,
+                        &job.result.commit_status(),
+                        job_url.clone(),
+                        None,
+                        "continuous-integration/jenkins".to_owned()
+                    ).expect(
+                        format!(
+                            "GitHub status update failed for {}/{} {}.",
+                            commit_ref.owner,
+                            commit_ref.repo,
+                            commit_ref.sha
+                        ).as_ref()
+                    );
+
+                    return Ok(())
+                }
+
+                job = updated_job;
+            }
 
             return Ok(())
         }
