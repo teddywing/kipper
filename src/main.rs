@@ -111,6 +111,7 @@ fn main() {
     stderrlog::new()
         .module(module_path!())
         .timestamp(stderrlog::Timestamp::Second)
+        .verbosity(4) // LogLevel::Trace
         .init()
         .expect("Logger failed to initialise");
 

@@ -15,6 +15,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Kipper. If not, see <http://www.gnu.org/licenses/>.
 
+#[macro_use]
+extern crate log;
+
 pub mod jenkins;
 pub mod pull_request;
 

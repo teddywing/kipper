@@ -231,6 +231,8 @@ pub fn get_jobs(
 
     let body = response.text()?;
 
+    // debug!("{}", body);
+
     let jobs = json::parse(body.as_ref())?;
 
     Ok(
@@ -254,6 +256,8 @@ pub fn request_job(
     ).send()?;
 
     let body = response.text()?;
+
+    // debug!("{}", body);
 
     let job = Job::new(body)?;
 

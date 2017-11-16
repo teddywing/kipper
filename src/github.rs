@@ -69,7 +69,7 @@ pub fn update_commit_status(
         params.insert("description", d);
     }
 
-    client.post(
+    let mut response = client.post(
             &format!(
                 "{}/repos/{}/{}/statuses/{}",
                 API_URL,
@@ -92,6 +92,11 @@ pub fn update_commit_status(
         )
         .json(&params)
         .send()?;
+
+    debug!("{}", response.url());
+    debug!("{}", response.status());
+    debug!("{}", response.headers());
+    debug!("{}", response.text()?);
 
     Ok(())
 }
