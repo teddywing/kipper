@@ -33,7 +33,7 @@ use std::time::Duration;
 use getopts::Options;
 
 use kipper::jenkins;
-use kipper::pull_request::CommitRef;
+use kipper::pull_request::{CommitRef, pull_request_opened_or_synchronized};
 
 const DEFAULT_PORT: u16 = 8000;
 
@@ -138,6 +138,11 @@ fn main() {
                                 return internal_server_error()
                             },
                         };
+
+                        if !pull_request_opened_or_synchronized(json.clone()) {
+                            return rouille::Response::text("No status update needed.")
+                                .with_status_code(200)
+                        }
 
                         let commit_ref = match CommitRef::new(json) {
                             Ok(cr) => cr,
