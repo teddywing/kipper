@@ -127,11 +127,13 @@ pub fn find_and_track_build_and_update_status(
 
             let commit_status = job.result.commit_status();
 
+            let job_console_url = jenkins_console_url_path(&job_url);
+
             github::update_commit_status(
                 &github_token,
                 &commit_ref,
                 &commit_status,
-                job_url.clone(),
+                job_console_url.clone(),
                 None,
                 "continuous-integration/jenkins".to_owned()
             ).expect(
@@ -161,7 +163,7 @@ pub fn find_and_track_build_and_update_status(
                         &github_token,
                         &commit_ref,
                         &github::CommitStatus::Error,
-                        job_url.clone(),
+                        job_console_url.clone(),
                         Some("The status checker timed out.".to_owned()),
                         "continuous-integration/jenkins".to_owned()
                     ).expect(
@@ -191,7 +193,7 @@ pub fn find_and_track_build_and_update_status(
                         &github_token,
                         &commit_ref,
                         &updated_job.result.commit_status(),
-                        job_url.clone(),
+                        job_console_url.clone(),
                         None,
                         "continuous-integration/jenkins".to_owned()
                     ).expect(
@@ -279,6 +281,10 @@ pub fn result_from_job(status: Option<String>) -> JobStatus {
             }
         }
     }
+}
+
+pub fn jenkins_console_url_path(job_url: &String) -> String {
+    format!("{}console", job_url)
 }
 
 
@@ -444,6 +450,16 @@ mod tests {
         assert_eq!(
             result_from_job(None),
             JobStatus::Pending
+        );
+    }
+
+    #[test]
+    fn jenkins_console_url_path_returns_url_to_console_page() {
+        assert_eq!(
+            jenkins_console_url_path(
+                &"https://jenkins.example.com/job/changes-branches/15/".to_owned()
+            ),
+            "https://jenkins.example.com/job/changes-branches/15/console"
         );
     }
 }
