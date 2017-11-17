@@ -16,6 +16,7 @@
 // along with Kipper. If not, see <http://www.gnu.org/licenses/>.
 
 extern crate getopts;
+extern crate json;
 #[macro_use]
 extern crate log;
 extern crate stderrlog;
@@ -32,7 +33,7 @@ use std::time::Duration;
 use getopts::Options;
 
 use kipper::jenkins;
-use kipper::pull_request::CommitRef;
+use kipper::pull_request::{CommitRef, pull_request_opened_or_synchronized};
 
 const DEFAULT_PORT: u16 = 8000;
 
@@ -129,7 +130,21 @@ fn main() {
                         let mut body = String::new();
                         try_or_400!(data.read_to_string(&mut body));
 
-                        let commit_ref = match CommitRef::new(body.as_ref()) {
+                        let json = match json::parse(body.as_ref()) {
+                            Ok(j) => j,
+                            Err(e) => {
+                                error!("{}", e.to_string());
+
+                                return internal_server_error()
+                            },
+                        };
+
+                        if !pull_request_opened_or_synchronized(json.clone()) {
+                            return rouille::Response::text("No status update needed.")
+                                .with_status_code(200)
+                        }
+
+                        let commit_ref = match CommitRef::new(json) {
                             Ok(cr) => cr,
                             Err(e) => {
                                 error!("{}", e.to_string());

@@ -28,9 +28,9 @@ pub struct CommitRef {
 }
 
 impl CommitRef {
-    pub fn new(json_str: &str) -> Result<CommitRef, Box<Error>> {
-        let mut github_push_event = json::parse(json_str)?;
-
+    pub fn new(
+        mut github_push_event: json::JsonValue
+    ) -> Result<CommitRef, Box<Error>> {
         Ok(
             CommitRef {
                 owner: github_push_event["pull_request"]["head"]["repo"]["owner"]["login"].take_string().unwrap_or_default(),
@@ -40,6 +40,18 @@ impl CommitRef {
             }
         )
     }
+}
+
+pub fn pull_request_opened_or_synchronized(
+    mut github_push_event: json::JsonValue
+) -> bool {
+    let action = github_push_event["action"].take_string().unwrap_or_default();
+
+    if action == "opened" || action == "synchronize" {
+        return true
+    }
+
+    false
 }
 
 
@@ -465,12 +477,63 @@ mod tests {
           }
         }"#;
 
-        let commit_ref = CommitRef::new(payload)
+        let json = json::parse(payload)
+            .expect("Failed to parse payload.");
+
+        let commit_ref = CommitRef::new(json)
             .expect("Failed to create CommitRef from payload");
 
         assert_eq!(commit_ref.owner, "baxterthehacker");
         assert_eq!(commit_ref.repo, "public-repo");
         assert_eq!(commit_ref.sha, "0d1a26e67d8f5eaf1f6ba5c57fc3c7d91ac0fd1c");
         assert_eq!(commit_ref.branch, "changes");
+    }
+
+    #[test]
+    fn pull_request_opened_or_synchronized_returns_true_when_opened() {
+        let payload = r#"{
+            "action": "opened"
+        }"#;
+
+        let json = json::parse(payload)
+            .expect("Failed to parse payload.");
+
+        assert_eq!(
+            pull_request_opened_or_synchronized(json),
+            true
+        );
+    }
+
+    #[test]
+    fn pull_request_opened_or_synchronized_returns_true_when_synchronized() {
+        let payload = r#"{
+            "action": "synchronize"
+        }"#;
+
+        let json = json::parse(payload)
+            .expect("Failed to parse payload.");
+
+        assert_eq!(
+            pull_request_opened_or_synchronized(json),
+            true
+        );
+    }
+
+    #[test]
+    fn pull_request_opened_or_synchronized_returns_false_when_not_opened_or_synchronized() {
+        // "assigned", "unassigned", "review_requested",
+        // "review_request_removed", "labeled", "unlabeled", "opened",
+        // "edited", "closed", or "reopened"
+        let payload = r#"{
+            "action": "review_requested"
+        }"#;
+
+        let json = json::parse(payload)
+            .expect("Failed to parse payload.");
+
+        assert_eq!(
+            pull_request_opened_or_synchronized(json),
+            false
+        );
     }
 }
