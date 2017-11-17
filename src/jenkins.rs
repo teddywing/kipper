@@ -281,6 +281,10 @@ pub fn result_from_job(status: Option<String>) -> JobStatus {
     }
 }
 
+pub fn jenkins_console_url_path(job_url: &String) -> String {
+    format!("{}console", job_url)
+}
+
 
 fn jenkins_request_client(user_id: &String, token: &String) -> Result<reqwest::Client, Box<Error>> {
     let credentials = auth_credentials(user_id.to_owned(), token.to_owned());
@@ -444,6 +448,16 @@ mod tests {
         assert_eq!(
             result_from_job(None),
             JobStatus::Pending
+        );
+    }
+
+    #[test]
+    fn jenkins_console_url_path_returns_url_to_console_page() {
+        assert_eq!(
+            jenkins_console_url_path(
+                &"https://jenkins.example.com/job/changes-branches/15/".to_owned()
+            ),
+            "https://jenkins.example.com/job/changes-branches/15/console"
         );
     }
 }
