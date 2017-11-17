@@ -127,11 +127,13 @@ pub fn find_and_track_build_and_update_status(
 
             let commit_status = job.result.commit_status();
 
+            let job_console_url = jenkins_console_url_path(&job_url);
+
             github::update_commit_status(
                 &github_token,
                 &commit_ref,
                 &commit_status,
-                job_url.clone(),
+                job_console_url.clone(),
                 None,
                 "continuous-integration/jenkins".to_owned()
             ).expect(
@@ -161,7 +163,7 @@ pub fn find_and_track_build_and_update_status(
                         &github_token,
                         &commit_ref,
                         &github::CommitStatus::Error,
-                        job_url.clone(),
+                        job_console_url.clone(),
                         Some("The status checker timed out.".to_owned()),
                         "continuous-integration/jenkins".to_owned()
                     ).expect(
@@ -191,7 +193,7 @@ pub fn find_and_track_build_and_update_status(
                         &github_token,
                         &commit_ref,
                         &updated_job.result.commit_status(),
-                        job_url.clone(),
+                        job_console_url.clone(),
                         None,
                         "continuous-integration/jenkins".to_owned()
                     ).expect(
