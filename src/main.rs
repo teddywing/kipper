@@ -118,9 +118,9 @@ fn main() {
         .init()
         .expect("Logger failed to initialise");
 
-    println!("Server listening on 127.0.0.1:{}", port);
+    println!("Server listening on 0.0.0.0:{}", port);
 
-    rouille::start_server(format!("127.0.0.1:{}", port), move |request| {
+    rouille::start_server(format!("0.0.0.0:{}", port), move |request| {
         router!(request,
             (POST) (/github/pull_request_event) => {
                 match request.data() {
