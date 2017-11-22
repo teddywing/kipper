@@ -1,6 +1,6 @@
 [root]
 name = "kipper"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "getopts 0.2.15 (registry+https://github.com/rust-lang/crates.io-index)",
  "json 0.11.10 (registry+https://github.com/rust-lang/crates.io-index)",

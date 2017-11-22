@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+v0.0.3 (2017-11-22):
+	Changes:
+
+	* Listen on `0.0.0.0` instead of `127.0.0.1` to facilitate running the
+	  server inside a Docker container.
+
 v0.0.2 (2017-11-17):
 	Fixes:
 
